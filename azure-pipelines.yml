@@ -1,0 +1,58 @@
+trigger:
+  branches:
+    include:
+    - '*'  # must quote since "*" is a YAML reserved character; we want a string
+
+variables:
+  buildConfiguration: 'Release'
+
+stages:
+- stage: Build_and_Test
+  displayName: 'Build and test projects'
+  jobs:
+  - job: 'Windows'
+    displayName: 'Build and test project on Windows platform'
+    pool:
+      name: Windows-2016
+    workspace:
+      clean: all
+    steps:
+    - template: azure_templates/windows_tests.yml
+  - job: 'Ubuntu'
+    displayName: 'Build and test project on Ubuntu platform'
+    pool:
+      name: Ubuntu
+    workspace:
+      clean: all
+    steps:
+    - template: azure_templates/tests.yml
+- stage: IntelliCode
+  displayName: 'Train intelliCode model'
+  dependsOn:
+  - Build_and_Test
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:
+  - job: 'Training'
+    displayName: 'Train intelliCode model'
+    pool:
+      name: Windows-2016
+      workspace:
+        clean: all
+    steps:
+    - task: IntelliCodeTeamModels@1
+      inputs:
+        branch: 'master'
+- stage: Publish
+  displayName: 'Publish package to artifacts nuget'
+  dependsOn:
+  - Build_and_Test
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'))
+  jobs:
+  - job: 'Nuget'
+    displayName: 'Publish package to artifacts nuget'
+    pool:
+      name: Windows-2016
+    workspace:
+      clean: all
+    steps:
+    - template: azure_templates/publish.yml

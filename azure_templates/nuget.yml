@@ -1,0 +1,12 @@
+steps:
+- task: NuGetToolInstaller@1
+  displayName: '使用 NuGet '
+  inputs:
+    checkLatest: true
+- task: NuGetCommand@2
+  displayName: 'NuGet push'
+  inputs:
+    command: push
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/Stream*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    publishVstsFeed: 'Package'
+    allowPackageConflicts: true

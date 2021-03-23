@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Authors>Kenneth Tang</Authors>
+    <Company>艾陽科技</Company>
+    <Product>Stream</Product>
+  </PropertyGroup>
+
+</Project>

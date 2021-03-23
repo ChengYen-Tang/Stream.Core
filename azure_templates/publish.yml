@@ -1,0 +1,7 @@
+steps:
+- template: build.yml
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet pack'
+  inputs:
+    command: pack
+- template: nuget.yml
