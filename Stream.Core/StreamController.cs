@@ -170,7 +170,10 @@ namespace Stream.Core
     {
         public T Puller { get; set; }
 
-        public Func<bool> CreatePullerInstance { get; set; }
+        /// <summary>
+        /// 連接用來建立處理串流提供者實體的方法
+        /// </summary>
+        public Func<bool> CreateInstanceMethod { get; set; }
 
         public StreamParameter(string name, string url)
             : base(name, url) { }
