@@ -11,7 +11,7 @@ namespace Stream.Core.Tests.Stream.Core
             lock (streamDictionaryLock)
             {
                 disconnectedStreams.Add(name, new StreamParameter<int>(name, url));
-                disconnectedStreams[name].Puller = int.Parse(url);
+                disconnectedStreams[name].StreamProvider = int.Parse(url);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Stream.Core.Tests.Stream.Core
 
         protected override void ReconnectHandler(StreamParameter<int> pullerParameter)
         {
-            if (pullerParameter.Puller % 2 == 0)
+            if (pullerParameter.StreamProvider % 2 == 0)
                 lock (streamDictionaryLock)
                     connectedStreams.Add(pullerParameter.Name, pullerParameter);
             else
