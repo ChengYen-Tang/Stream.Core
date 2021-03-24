@@ -117,6 +117,25 @@ namespace Stream.Core
         }
 
         /// <summary>
+        /// 建立串流提供者
+        /// 建立成功串流提供者參數會放置 connectedStreams
+        /// 建立失敗串流提供者參數會放置 disconnectedStreams
+        /// </summary>
+        /// <param name="parameter"></param>
+        protected async Task CreateProviderTaskAsync(StreamParameter<T> parameter)
+        {
+            bool isInit = await Task.Run(() => parameter.CreateInstanceMethod.Invoke());
+
+            lock (streamDictionaryLock)
+                if (isInit)
+                    connectedStreams.Add(parameter.Name, parameter);
+                else
+                {
+                    disconnectedStreams.Add(parameter.Name, parameter);
+                }
+        }
+
+        /// <summary>
         /// 關閉控制器
         /// 停止斷線重新連線機制
         /// </summary>
@@ -143,18 +162,12 @@ namespace Stream.Core
                 Parallel.ForEach(disconnectedStreamsDuplicate, (disconnectedStream) => {
                     lock (streamDictionaryLock)
                         disconnectedStreams.Remove(disconnectedStream.Key);
-                    ReconnectHandler(disconnectedStream.Value);
+                    CreateProviderTaskAsync(disconnectedStream.Value).Wait();
                 });
 
                 SpinWait.SpinUntil(() => isClose, reconnectDelay);
             }
         }
-
-        /// <summary>
-        /// 處理重新連線機制啟動後的工作
-        /// </summary>
-        /// <param name="pullerParameter"></param>
-        protected abstract void ReconnectHandler(StreamParameter<T> pullerParameter);
     }
 
     public class StreamInformation

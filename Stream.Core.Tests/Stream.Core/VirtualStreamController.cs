@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace Stream.Core.Tests.Stream.Core
 {
@@ -12,6 +13,12 @@ namespace Stream.Core.Tests.Stream.Core
             {
                 disconnectedStreams.Add(name, new StreamParameter<int>(name, url));
                 disconnectedStreams[name].StreamProvider = int.Parse(url);
+                disconnectedStreams[name].CreateInstanceMethod = new Func<bool>(() => {
+                    if (int.Parse(url) % 2 == 0)
+                        return true;
+                    else
+                        return false;
+                });
             }
         }
 
@@ -32,16 +39,6 @@ namespace Stream.Core.Tests.Stream.Core
             var connectionsNames = connectedStreams.Select(item => item.Key);
             foreach (var connectionStream in connectionsNames)
                 MoveDisconnectedPuller(connectionStream);
-        }
-
-        protected override void ReconnectHandler(StreamParameter<int> pullerParameter)
-        {
-            if (pullerParameter.StreamProvider % 2 == 0)
-                lock (streamDictionaryLock)
-                    connectedStreams.Add(pullerParameter.Name, pullerParameter);
-            else
-                lock (streamDictionaryLock)
-                    disconnectedStreams.Add(pullerParameter.Name, pullerParameter);
         }
 
         public new void Close()
