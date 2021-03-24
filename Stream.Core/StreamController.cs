@@ -168,7 +168,7 @@ namespace Stream.Core
 
     public class StreamParameter<T> : StreamInformation
     {
-        public T Puller { get; set; }
+        public T StreamProvider { get; set; }
 
         /// <summary>
         /// 連接用來建立處理串流提供者實體的方法
