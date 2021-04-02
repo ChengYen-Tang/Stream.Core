@@ -13,7 +13,7 @@ stages:
   - job: 'Windows'
     displayName: 'Build and test project on Windows platform'
     pool:
-      name: Windows-2016
+      name: Windows
     workspace:
       clean: all
     steps:
@@ -35,7 +35,7 @@ stages:
   - job: 'Training'
     displayName: 'Train intelliCode model'
     pool:
-      name: Windows-2016
+      name: Windows
       workspace:
         clean: all
     steps:
@@ -51,7 +51,7 @@ stages:
   - job: 'Nuget'
     displayName: 'Publish package to artifacts nuget'
     pool:
-      name: Windows-2016
+      name: Windows
     workspace:
       clean: all
     steps:
