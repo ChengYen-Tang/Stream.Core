@@ -124,6 +124,9 @@ namespace Stream.Core
         /// <param name="parameter"></param>
         protected async Task CreateProviderTaskAsync(StreamParameter<T> parameter)
         {
+            if (StreamExist(parameter.Name))
+                throw new StreamCoreException("Stream name already exists.");
+
             bool isInit = await Task.Run(() => parameter.CreateInstanceMethod.Invoke());
 
             lock (streamDictionaryLock)
