@@ -13,7 +13,7 @@ stages:
   - job: 'Windows'
     displayName: 'Build and test project on Windows platform'
     pool:
-      name: Windows
+      vmImage: 'windows-latest'
     workspace:
       clean: all
     steps:
@@ -21,7 +21,15 @@ stages:
   - job: 'Ubuntu'
     displayName: 'Build and test project on Ubuntu platform'
     pool:
-      name: Ubuntu
+      vmImage: 'ubuntu-latest'
+    workspace:
+      clean: all
+    steps:
+    - template: azure_templates/tests.yml
+  - job: 'MacOS'
+    displayName: 'Build and test project on MacOS platform'
+    pool:
+      vmImage: 'macOS-latest'
     workspace:
       clean: all
     steps:
@@ -35,24 +43,10 @@ stages:
   - job: 'Training'
     displayName: 'Train intelliCode model'
     pool:
-      name: Windows
-      workspace:
-        clean: all
+      vmImage: 'windows-latest'
+    workspace:
+      clean: all
     steps:
     - task: IntelliCodeTeamModels@1
       inputs:
         branch: 'master'
-- stage: Publish
-  displayName: 'Publish package to artifacts nuget'
-  dependsOn:
-  - Build_and_Test
-  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'))
-  jobs:
-  - job: 'Nuget'
-    displayName: 'Publish package to artifacts nuget'
-    pool:
-      name: Windows
-    workspace:
-      clean: all
-    steps:
-    - template: azure_templates/publish.yml

@@ -31,12 +31,15 @@ namespace Stream.Core.Tests.Stream.Core
 
             Assert.IsFalse(sc.StreamExist("§Ú¦n«Ó"));
 
-            await Task.Delay(1000);
+            await Task.Delay(1500);
             Assert.IsTrue(sc.GetAllStreamsInfo().Count() == 6);
             Assert.IsTrue(sc.GetConnectedStreamsInfo().Count() == 3);
             Assert.IsTrue(sc.GetDisconnectedStreamsInfo().Count() == 3);
             sc.DisconnectionAllStreams();
-            await Task.Delay(1000);
+            Assert.IsTrue(sc.GetAllStreamsInfo().Count() == 6);
+            Assert.IsTrue(sc.GetConnectedStreamsInfo().Count() == 0);
+            Assert.IsTrue(sc.GetDisconnectedStreamsInfo().Count() == 6);
+            await Task.Delay(1500);
             Assert.IsTrue(sc.GetAllStreamsInfo().Count() == 6);
             Assert.IsTrue(sc.GetConnectedStreamsInfo().Count() == 3);
             Assert.IsTrue(sc.GetDisconnectedStreamsInfo().Count() == 3);

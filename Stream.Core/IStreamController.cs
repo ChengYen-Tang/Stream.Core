@@ -14,10 +14,6 @@ namespace Stream.Core
         /// 關閉串流控制器
         /// </summary>
         void Close();
-        /// <summary>
-        /// 等待重新連線機制結束
-        /// </summary>
-        void Wait();
 
         /// <summary>
         /// 檢查串流是否存在

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,43 +31,37 @@ namespace Stream.Core
         /// 回傳所有串流的資訊 (已連線、斷線)
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<StreamInformation> GetAllStreamsInfo()
+        public ICollection<StreamInformation> GetAllStreamsInfo()
         {
-            var pullerInformations = new List<StreamInformation>();
             lock (streamDictionaryLock)
-            {
-                pullerInformations.AddRange(connectedStreams.Values);
-                pullerInformations.AddRange(disconnectedStreams.Values);
-            }
-
-            return pullerInformations;
+                return connectedStreams.Values.Concat(disconnectedStreams.Values).ToArray();
         }
 
         /// <summary>
         /// 回傳已連線串流的資訊
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<StreamInformation> GetConnectedStreamsInfo()
+        public ICollection<StreamInformation> GetConnectedStreamsInfo()
         {
             lock (streamDictionaryLock)
-                return connectedStreams.Values;
+                return connectedStreams.Values.ToArray();
         }
 
         /// <summary>
         /// 回傳斷線串流的資訊
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<StreamInformation> GetDisconnectedStreamsInfo()
+        public ICollection<StreamInformation> GetDisconnectedStreamsInfo()
         {
             lock (streamDictionaryLock)
-                return disconnectedStreams.Values;
+                return disconnectedStreams.Values.ToArray();
         }
 
         /// <summary>
         /// 將串流從已連線改為斷線
         /// </summary>
         /// <param name="name"></param>
-        protected void MoveDisconnectedPuller(string name)
+        protected void MoveToDisconnectedPuller(string name)
         {
             lock (streamDictionaryLock)
             {
@@ -97,23 +92,10 @@ namespace Stream.Core
         public bool StreamExist(string name)
         {
             lock (streamDictionaryLock)
-            {
-                if (connectedStreams.ContainsKey(name))
+                if (connectedStreams.ContainsKey(name) || disconnectedStreams.ContainsKey(name))
                     return true;
-
-                if (disconnectedStreams.ContainsKey(name))
-                    return true;
-            }
 
             return false;
-        }
-
-        /// <summary>
-        /// 等待重新連線機制結束
-        /// </summary>
-        public void Wait()
-        {
-            reconnectTask.Wait();
         }
 
         /// <summary>
@@ -133,9 +115,7 @@ namespace Stream.Core
                 if (isInit)
                     connectedStreams.Add(parameter.Name, parameter);
                 else
-                {
                     disconnectedStreams.Add(parameter.Name, parameter);
-                }
         }
 
         /// <summary>
@@ -148,7 +128,7 @@ namespace Stream.Core
                 return;
 
             isClose = true;
-            Wait();
+            reconnectTask.Wait();
             reconnectTask.Dispose();
         }
 
@@ -159,14 +139,21 @@ namespace Stream.Core
         {
             while (!isClose)
             {
-                Dictionary<string, StreamParameter<T>> disconnectedStreamsDuplicate;
+                Dictionary<string, StreamParameter<T>> disconnectedStreamsDuplicate = null;
+
                 lock (streamDictionaryLock)
-                    disconnectedStreamsDuplicate = new Dictionary<string, StreamParameter<T>>(disconnectedStreams);
-                Parallel.ForEach(disconnectedStreamsDuplicate, (disconnectedStream) => {
-                    lock (streamDictionaryLock)
-                        disconnectedStreams.Remove(disconnectedStream.Key);
-                    CreateProviderTaskAsync(disconnectedStream.Value).Wait();
-                });
+                {
+                    if (disconnectedStreams.Any())
+                    {
+                        disconnectedStreamsDuplicate = disconnectedStreams;
+                        disconnectedStreams = new Dictionary<string, StreamParameter<T>>();
+                    }
+                }
+
+                if (disconnectedStreamsDuplicate != null)
+                    Parallel.ForEach(disconnectedStreamsDuplicate, (disconnectedStream) => {
+                        CreateProviderTaskAsync(disconnectedStream.Value).Wait();
+                    });
 
                 SpinWait.SpinUntil(() => isClose, reconnectDelay);
             }

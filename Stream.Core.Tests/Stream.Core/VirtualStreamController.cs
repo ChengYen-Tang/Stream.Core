@@ -5,7 +5,7 @@ namespace Stream.Core.Tests.Stream.Core
 {
     internal class VirtualStreamController : StreamController<int>
     {
-        public VirtualStreamController() : base(100) { }
+        public VirtualStreamController() : base(1000) { }
 
         public void CreateStream(string name, string url)
         {
@@ -38,7 +38,7 @@ namespace Stream.Core.Tests.Stream.Core
         {
             var connectionsNames = connectedStreams.Select(item => item.Key);
             foreach (var connectionStream in connectionsNames)
-                MoveDisconnectedPuller(connectionStream);
+                MoveToDisconnectedPuller(connectionStream);
         }
 
         public new void Close()
